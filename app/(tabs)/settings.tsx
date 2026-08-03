@@ -1,10 +1,10 @@
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Alert, Switch, ActivityIndicator } from 'react-native';
-import { useState, useEffect } from 'react';
-import { useRouter, Tabs } from 'expo-router';
-import { auth, db } from '../../firebaseConfig';
-import { doc, onSnapshot } from 'firebase/firestore';
 import { Ionicons } from '@expo/vector-icons';
-import { PALETTE, RADIUS, SPACING, SHADOWS } from '../../theme/designSystem';
+import { Tabs, useRouter } from 'expo-router';
+import { doc, onSnapshot } from 'firebase/firestore';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { auth, db } from '../../firebaseConfig';
+import { PALETTE, RADIUS, SHADOWS, SPACING } from '../../theme/designSystem';
 
 interface UserData {
   email: string;
@@ -197,6 +197,6 @@ const styles = StyleSheet.create({
   staticField: { paddingVertical: 12 },
   fieldMeta: { fontSize: 11, fontWeight: '700', color: PALETTE.textMuted, textTransform: 'uppercase' },
   fieldContent: { fontSize: 14, fontWeight: '700', color: PALETTE.text, marginTop: 2 },
-  signOutButton: { backgroundColor: '#E74C3C', borderRadius: RADIUS.button, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 40, marginBottom: 60 },
+  signOutButton: { backgroundColor: '#E74C3C', borderRadius: RADIUS.card, paddingVertical: 16, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 8, marginTop: 40, marginBottom: 60 },
   signOutButtonText: { color: 'white', fontSize: 15, fontWeight: '800' }
 });

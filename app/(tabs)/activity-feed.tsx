@@ -17,18 +17,27 @@ export default function ActivityFeedScreen() {
   const [isAdmin, setIsAdmin] = useState(false); // New state to check admin role
 
   useEffect(() => {
+    // 🛑 1. GUARD: Exit early if Firebase Auth hasn't initialized or restored the session yet
+    if (!auth.currentUser) {
+      setLoading(false);
+      return;
+    }
+
     // 1. Check if the user is Admin
     const checkAdminRole = async () => {
-      if (auth.currentUser) {
-        const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
+      try {
+        const userDoc = await getDoc(doc(db, 'users', auth.currentUser!.uid));
         if (userDoc.exists() && userDoc.data().role === 'admin') {
           setIsAdmin(true);
         }
+      } catch (error) {
+        console.warn("Admin role check error:", error);
       }
     };
+    
     checkAdminRole();
 
-    // 2. Fetch posts
+    // 2. Fetch posts safely with auth token present
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const q = query(
       collection(db, 'activity-feed'), 
@@ -36,17 +45,25 @@ export default function ActivityFeedScreen() {
       orderBy('createdAt', 'desc')
     );
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedPosts: FeedPost[] = [];
-      snapshot.forEach((document) => {
-        fetchedPosts.push({ id: document.id, ...document.data() } as FeedPost);
-      });
-      setPosts(fetchedPosts);
-      setLoading(false);
-    });
+    // 🛡️ 2. SAFE LISTENER: Include error handler to prevent unhandled promise rejections
+    const unsubscribe = onSnapshot(
+      q, 
+      (snapshot) => {
+        const fetchedPosts: FeedPost[] = [];
+        snapshot.forEach((document) => {
+          fetchedPosts.push({ id: document.id, ...document.data() } as FeedPost);
+        });
+        setPosts(fetchedPosts);
+        setLoading(false);
+      },
+      (error) => {
+        console.warn("Activity feed listener gracefully caught an error:", error.message);
+        setLoading(false);
+      }
+    );
 
     return () => unsubscribe(); 
-  }, []);
+  }, [auth.currentUser]); // 🔄 3. DEPENDENCY: Re-subscribes as soon as user state is ready
 
   const handleClearPost = (id: string) => {
     Alert.alert(

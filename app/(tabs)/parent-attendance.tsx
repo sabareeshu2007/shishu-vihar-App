@@ -17,8 +17,14 @@ export default function ParentAttendanceScreen() {
   useEffect(() => {
     const fetchHistory = async () => {
       try {
-        if (!auth.currentUser) return;
+        // 🛑 1. GUARD: Exit if auth session isn't restored yet
+        if (!auth.currentUser) {
+          setLoading(false);
+          return;
+        }
         
+        setLoading(true);
+
         // 1. Fetch the logged-in parent's profile to find their child
         const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
         
@@ -64,7 +70,7 @@ export default function ParentAttendanceScreen() {
     };
 
     fetchHistory();
-  }, []);
+  }, [auth.currentUser]); // 🔄 2. DEPENDENCY: Automatically runs the instant Firebase restores auth.currentUser!
 
   if (loading) {
     return (

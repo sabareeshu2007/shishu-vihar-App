@@ -2,10 +2,11 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, ScrollView, Activi
 import { useState } from 'react';
 import { useRouter } from 'expo-router';
 import { collection, addDoc, doc, setDoc, getDocs, query, where, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
+
 
 // 🔒 Core items from the main auth package
-import { initializeAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { initializeAuth, getAuth, Auth, createUserWithEmailAndPassword } from 'firebase/auth';
 
 // @ts-ignore - Explicitly ignore linter error; Metro resolves this correctly for mobile at runtime
 import { getReactNativePersistence } from 'firebase/auth';
@@ -28,12 +29,18 @@ const fallbackConfig = {
 };
 const finalConfig = firebaseConfig || fallbackConfig;
 
-const adminSecondaryApp = initializeApp(finalConfig, "AdminSecondaryBridge");
+const adminSecondaryApp = getApps().find((app) => app.name === "AdminSecondaryBridge")
+  ?? initializeApp(finalConfig, "AdminSecondaryBridge");
 
-// 🔒 Safe, persistent auth initialization
-const adminSecondaryAuth = initializeAuth(adminSecondaryApp, {
-  persistence: getReactNativePersistence(AsyncStorage),
-});
+let adminSecondaryAuth: Auth;
+
+try {
+  adminSecondaryAuth = initializeAuth(adminSecondaryApp, {
+    persistence: getReactNativePersistence(AsyncStorage),
+  });
+} catch (e) {
+  adminSecondaryAuth = getAuth(adminSecondaryApp);
+}
 
 export default function SiblingAdmissionScreen() {
   const router = useRouter();
